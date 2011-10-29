@@ -1,16 +1,17 @@
 package no.java.ldapadmin
 
-import no.java.core.DefaultUserService
 import org.scalatra._
 import org.squeryl._
 import adapters.DerbyAdapter
 import PrimitiveTypeMode._
 import java.net.URL
 import scalate.ScalateSupport
-import java.util.Calendar
-import java.sql.DriverManager
+import no.java.core.{UserService, DefaultUserService}
+import java.util.{List, Calendar}
+import no.java.core.model.User
+import java.sql.{Timestamp, DriverManager}
 
-class LdapAdminServlet extends ScalatraServlet with ScalateSupport with DefaultMailSender {
+class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with FakeMailSender {
 
   Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
   SessionFactory.concreteFactory = Some(() =>
@@ -48,40 +49,78 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with DefaultM
     }
   }
 
-  def sendRestLinkToUser(email: String, generatedPassword: String) {
-      sendMail("", email, "Password reset requested", "")
-  }
-
   post("/reset-password") {
     val email = params("email")
-//    val userService = new DefaultUserService();
-//    val user = userService.findUserByMail(email);
-//    val generatedPassword = userService.resetPassword(user.getUid)
+    //    val userService = new DefaultUserService();
+    //    val user = userService.findUserByMail(email);
+    //    val generatedPassword = userService.resetPassword(user.getUid)
   }
 
   post("/recover-password") {
     val email = params("email")
-    val now = Calendar.getInstance().getTime
-    val rnd = new java.util.Random
-    val identifier = rnd.nextLong.toHexString + "-" + rnd.nextLong.toHexString
-    val pr = new PasswordResetRequest(email, identifier, now)
-    transaction {
-      DB.resetRequests.insert(pr)
+    val userService = new UserService {
+      def setPassword(p1: String, p2: String) {}
+
+      def saveUser(p1: User) {}
+
+      def getUserByMail(p1: String) = null
+
+      def findGroupsByMember(p1: String) = null
+
+      def createUser(p1: User) = null
+
+      def resetPassword(p1: String) = ""
+
+      def getUser(p1: String) = null
+
+      def getDnByUid(p1: String) = ""
+
+      def getUsers = null
+
+      def findUserByMail(p1: String): User = {
+        val user = new User()
+        user.setUid("thomas.skardal")
+        return user
+      }
+
+      def deleteUser(p1: String) {}
+
+      def search(p1: String) = null
+
+      def saveGroups(p1: String, p2: List[String]) {}
+
+      def getUserByDn(p1: String) = null
+    }
+
+    val user = userService.findUserByMail(email)
+
+    if (user != null) {
+      val now = Calendar.getInstance().getTime
+      val rnd = new java.util.Random
+      val identifier = rnd.nextLong.toHexString + "-" + rnd.nextLong.toHexString
+      val pr = new PasswordResetRequest(user.getUid, identifier, new Timestamp(now.getTime))
+      transaction {
+        DB.resetRequests.insert(pr)
+      }
+      sendResetLinkToUser(email, user.getUid, identifier)
+    } else {
+      showView("recover-password", "errorMessage" -> Some("No user with the given e-mail address"))
     }
   }
 
+  def sendResetLinkToUser(email: String, username: String, identifier: String) {
+    val resetUrl = url("/reset-password/" + username + "/" + identifier)
+    sendMail("noreply@java.no", email, "Password reset requested", "Reset your password here: " + resetUrl)
+  }
 
   notFound {
-    // Try to render a ScalateTemplate if no route matched
-    findTemplate(requestPath) map {
-      path =>
-        contentType = "text/html"
-        layoutTemplate(path)
-    } orElse serveStaticResource() getOrElse resourceNotFound()
+    resourceNotFound()
   }
 
   def showView(view: String, attributes: (String, Any)*) {
     contentType = "text/html"
-    scaml(view, attributes:_*)
+    scaml(view, attributes: _*)
   }
+
+  protected def contextPath = request.getContextPath
 }

@@ -58,7 +58,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
 
   post("/recover-password") {
     val email = params("email")
-    val userService = new UserService {
+    val temporaryUserServiceStub = new UserService {
       def setPassword(p1: String, p2: String) {}
 
       def saveUser(p1: User) {}
@@ -79,7 +79,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
 
       def findUserByMail(p1: String): User = {
         val user = new User()
-        user.setUid("thomas.skardal")
+        user.setUid("user.name")
         return user
       }
 
@@ -92,7 +92,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
       def getUserByDn(p1: String) = null
     }
 
-    val user = userService.findUserByMail(email)
+    val user = temporaryUserServiceStub.findUserByMail(email)
 
     if (user != null) {
       val now = Calendar.getInstance().getTime

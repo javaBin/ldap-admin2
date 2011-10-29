@@ -11,9 +11,13 @@ seq(webSettings :_*)
 libraryDependencies ++= Seq(
   "org.scalatra" %% "scalatra" % "2.0.1",
   "org.scalatra" %% "scalatra-scalate" % "2.0.1",
+  "org.squeryl" %% "squeryl" % "0.9.4",
+  "org.apache.derby" % "derby" % "10.7.1.1",
   "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "container",
   "javax.servlet" % "servlet-api" % "2.5" % "provided",
-  "no.java.portal" % "core-services" % "1.0-alpha-3-SNAPSHOT"
+  "javax.mail" % "mail" % "1.4.4",
+  "no.java.portal" % "core-services" % "1.0-alpha-3-SNAPSHOT",
+  "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 )
 
 resolvers += "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"

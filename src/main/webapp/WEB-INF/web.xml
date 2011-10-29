@@ -5,7 +5,7 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns
 	<servlet>
 		<servlet-name>scalatra</servlet-name>
 		<servlet-class>
-			LdapAdminServlet
+			no.java.ldapadmin.LdapAdminServlet
 		</servlet-class>
 	</servlet>
 

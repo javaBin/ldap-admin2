@@ -1,57 +1,16 @@
 package no.java.ldapadmin
 
+import ldap.LdapUserOperations
 import org.scalatra._
 import org.squeryl._
 import adapters.DerbyAdapter
 import PrimitiveTypeMode._
-import java.net.URL
 import scalate.ScalateSupport
-import no.java.core.{UserService, DefaultUserService}
-import java.util.{List, Calendar}
-import no.java.core.model.User
+import java.util.Calendar
 import java.sql.{Timestamp, DriverManager}
+import util.HashGenerator
 
-class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with FakeMailSender {
-
-  val temporaryUserServiceStub = new UserService {
-      def setPassword(p1: String, p2: String) {}
-
-      def saveUser(p1: User) {
-        println("user saved")
-      }
-
-      def getUserByMail(p1: String) = null
-
-      def findGroupsByMember(p1: String) = null
-
-      def createUser(p1: User) = null
-
-      def resetPassword(p1: String) = ""
-
-      def getUser(p1: String): User = {
-        val user = new User()
-        user.setUid("user.name")
-        user
-      }
-
-      def getDnByUid(p1: String) = ""
-
-      def getUsers = null
-
-      def findUserByMail(p1: String): User = {
-        val user = new User()
-        user.setUid("user.name")
-        user
-      }
-
-      def deleteUser(p1: String) {}
-
-      def search(p1: String) = null
-
-      def saveGroups(p1: String, p2: List[String]) {}
-
-      def getUserByDn(p1: String) = null
-    }
+class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with FakeMailSender with LdapUserOperations {
 
   Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
   SessionFactory.concreteFactory = Some(() =>
@@ -92,16 +51,16 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
   post("/reset-password/:userid") {
     val uid = params("userid")
     val pwd = params("pwd")
-    val user = temporaryUserServiceStub.getUser(uid);
-    user.setPassword(pwd)
-    temporaryUserServiceStub.saveUser(user)
+    val user = findUserByUid(uid).get
+    user.setPassword(HashGenerator.createHash(pwd))
+    saveUser(user)
 
-    println("Password for set to " + pwd + " for user " + uid)
+    println("Password set to " + pwd + "(" + HashGenerator.createHash(pwd) + " for user " + uid)
   }
 
   post("/recover-password") {
     val email = params("email")
-    val user = temporaryUserServiceStub.findUserByMail(email)
+    val user = findUserByEmail(email).get
 
     if (user != null) {
       val now = Calendar.getInstance().getTime

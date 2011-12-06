@@ -8,8 +8,6 @@ import javax.naming.spi.DirObjectFactory
 import java.util.HashSet
 import java.util.Hashtable
 import java.util.Set
-import no.java.core.ldap.AttributeException
-
 
 abstract class AbstractDirObjectFactory extends DirObjectFactory {
   protected def convert: AnyRef
@@ -49,11 +47,11 @@ abstract class AbstractDirObjectFactory extends DirObjectFactory {
   def getStringAttribute(name: String): String = {
     var attribute: Attribute = attributes.get(name)
     if (attribute == null) {
-      throw new AttributeException("Missing required attribute '" + name + "' on object '" + this.name + "'.")
+      throw new RuntimeException("Missing required attribute '" + name + "' on object '" + this.name + "'.")
     }
     var o: AnyRef = attribute.get(0)
     if (!(o.isInstanceOf[String])) {
-      throw new AttributeException("Attribute '" + name + "' on object '" + this.name + "' is not a string.")
+      throw new RuntimeException("Attribute '" + name + "' on object '" + this.name + "' is not a string.")
     }
     return o.asInstanceOf[String]
   }
@@ -65,7 +63,7 @@ abstract class AbstractDirObjectFactory extends DirObjectFactory {
     }
     var o: AnyRef = attribute.get(0)
     if (!(o.isInstanceOf[String])) {
-      throw new AttributeException("Attribute '" + name + "' on object '" + this.name + "' is not a string.")
+      throw new RuntimeException("Attribute '" + name + "' on object '" + this.name + "' is not a string.")
     }
     return o.asInstanceOf[String]
   }
@@ -101,7 +99,7 @@ abstract class AbstractDirObjectFactory extends DirObjectFactory {
       }
     }
     catch {
-      case e: AttributeException => {
+      case e: RuntimeException => {
         if (ignoreAttributeExeptionDuringConvertion) {
           e.printStackTrace
           return null

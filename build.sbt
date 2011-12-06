@@ -17,7 +17,6 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "container",
   "javax.servlet" % "servlet-api" % "2.5" % "provided",
   "javax.mail" % "mail" % "1.4.4",
-  "no.java.portal" % "core-services" % "1.0-alpha-3-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 )
 

@@ -1,11 +1,15 @@
 package no.java.ldapadmin
 
-import org.squeryl.Schema
-import java.util.{Calendar, Date}
 import java.sql.Timestamp
+import java.util.{Date, Calendar}
 
 
-class PasswordResetRequest(val username: String, val identifier: String, val requestTime: Timestamp) {
+class PasswordResetRequest(val username: String, val identifier: String, val requestTime: Timestamp, var active: Boolean) {
+
+  def this(username: String, identifier: String, requestTime: Timestamp) = {
+    this(username, identifier, requestTime, true)
+  }
+
   def isValid: Boolean = {
     val now = Calendar.getInstance.getTime
     val diff = now.getTime - requestTime.getTime

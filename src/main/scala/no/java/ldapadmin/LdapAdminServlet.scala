@@ -1,6 +1,6 @@
 package no.java.ldapadmin
 
-import ldap.LdapUserOperations
+import ldap.{User, LdapUserOperations}
 import org.scalatra._
 import org.squeryl._
 import adapters.DerbyAdapter
@@ -21,7 +21,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
   )
 
   get("/") {
-    showView("index")
+    redirect("/recover-password")
   }
 
   get("/recover-password") {
@@ -51,26 +51,38 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
   post("/reset-password/:userid") {
     val uid = params("userid")
     val pwd = params("pwd")
-    val user = findUserByUid(uid).get
-    user.setPassword(HashGenerator.createHash(pwd))
-    saveUser(user)
+    val user = findUserByUid(uid)
+    if(user.isDefined) {
+      val u = user.get
+      u.setPassword(HashGenerator.createHash(pwd))
+      saveUser(u)
+      invalidateResetRequestsForUser(u)
+    }
+  }
 
-    println("Password set to " + pwd + "(" + HashGenerator.createHash(pwd) + " for user " + uid)
+  def invalidateResetRequestsForUser(user: User) {
+    transaction {
+      update(DB.resetRequests)(req =>
+        where(req.username == user.getUid)
+        set(req.active := false)
+      )
+    }
   }
 
   post("/recover-password") {
     val email = params("email")
-    val user = findUserByEmail(email).get
+    val user = findUserByEmail(email)
 
-    if (user != null) {
+    if (user.isDefined) {
       val now = Calendar.getInstance().getTime
       val rnd = new java.util.Random
       val identifier = rnd.nextLong.toHexString + "-" + rnd.nextLong.toHexString
-      val pr = new PasswordResetRequest(user.getUid, identifier, new Timestamp(now.getTime))
+      val uid = user.get.getUid
+      val pr = new PasswordResetRequest(uid, identifier, new Timestamp(now.getTime))
       transaction {
         DB.resetRequests.insert(pr)
       }
-      sendResetLinkToUser(email, user.getUid, identifier)
+      sendResetLinkToUser(email, uid, identifier)
     } else {
       showView("recover-password", "errorMessage" -> Some("No user with the given e-mail address"))
     }

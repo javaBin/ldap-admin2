@@ -1,6 +1,19 @@
+This project is __WIP__
+
 Strategy
-========
+--------
+
 1. Get e-mail from user
-2. Generate reset-link and send to user
-  a. Persist reset-identifier with request-time
-3. When a valid reset-link is opened, let user specify new password
+2. Generate _reset link_ and send to user and persist the _reset identifier_ and _request time_
+3. When a _valid reset link_ is opened, let user specify new password
+
+
+Building and running
+--------------------
+
+To build and start the project locally issue the following sbt commands
+
+    $ sbt
+    > update
+    > container:start
+    > ~compile

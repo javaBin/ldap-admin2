@@ -1,5 +1,3 @@
-This project is __WIP__
-
 Strategy
 --------
 
@@ -17,3 +15,6 @@ To build and start the project locally issue the following sbt commands
     > update
     > container:start
     > ~compile
+
+
+...and keep in mind: this is __WIP__!

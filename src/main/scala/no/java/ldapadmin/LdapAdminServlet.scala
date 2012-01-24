@@ -10,7 +10,7 @@ import java.util.Calendar
 import java.sql.{Timestamp, DriverManager}
 import util.HashGenerator
 
-class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with FakeMailSender with LdapUserOperations {
+class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with DefaultMailSender with LdapUserOperations {
 
   Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
   SessionFactory.concreteFactory = Some(() =>

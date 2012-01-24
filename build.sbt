@@ -1,4 +1,4 @@
-organization := "no.bouvet"
+organization := "no.java"
 
 name := "ldap-admin"
 

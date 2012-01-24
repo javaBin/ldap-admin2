@@ -4,3 +4,4 @@ target/
 derby.log
 *.swp
 .DS_Store
+/ldapadmin/

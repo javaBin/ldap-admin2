@@ -1,47 +1,24 @@
 package no.java.ldapadmin
 
-import ldap.{User, LdapUserOperations}
+import ldap.LdapUserOperations
 import org.scalatra._
-import org.squeryl._
-import adapters.DerbyAdapter
-import PrimitiveTypeMode._
 import scalate.ScalateSupport
 import java.util.Calendar
-import java.sql.{Timestamp, DriverManager}
+import java.sql.Timestamp
 import util.HashGenerator
 
 class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with DefaultMailSender with LdapUserOperations {
 
-  Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-  SessionFactory.concreteFactory = Some(() =>
-    Session.create(
-      DriverManager.getConnection("jdbc:derby:ldapadmin;create=true"),
-      new DerbyAdapter
-    )
-  )
-
   get("/") {
-    redirect("/recover-password")
+    redirect(url("/recover-password"))
   }
 
   get("/recover-password") {
     showView("recover-password")
   }
 
-  def validResetRequest(username: String, identifier: String): Boolean = {
-    transaction {
-      val query = DB.resetRequests.where(r => r.username === username and r.identifier === identifier)
-      if (query.size > 0) {
-        val req = query.single
-        req.isValid
-      } else {
-        false
-      }
-    }
-  }
-
   get("/reset-password/:userid/:identifier") {
-    if (validResetRequest(params("userid"), params("identifier"))) {
+    if (ResetRequestDB.doesItExist(params("userid"), params("identifier"))) {
       showView("reset-password", "userid" -> params("userid"))
     } else {
       showView("recover-password", "errorMessage" -> Some("The reset-link was expired or unknowwn."))
@@ -56,16 +33,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
       val u = user.get
       u.setPassword(HashGenerator.createHash(pwd))
       saveUser(u)
-      invalidateResetRequestsForUser(u)
-    }
-  }
-
-  def invalidateResetRequestsForUser(user: User) {
-    transaction {
-      update(DB.resetRequests)(req =>
-        where(req.username == user.getUid)
-        set(req.active := false)
-      )
+      ResetRequestDB.deleteByUser(u.getUid)
     }
   }
 
@@ -79,9 +47,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
       val identifier = rnd.nextLong.toHexString + "-" + rnd.nextLong.toHexString
       val uid = user.get.getUid
       val pr = new PasswordResetRequest(uid, identifier, new Timestamp(now.getTime))
-      transaction {
-        DB.resetRequests.insert(pr)
-      }
+      ResetRequestDB.addRequest(pr)
       sendResetLinkToUser(email, uid, identifier)
     } else {
       showView("recover-password", "errorMessage" -> Some("No user with the given e-mail address"))
@@ -93,13 +59,13 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
     sendMail("noreply@java.no", email, "Password reset requested", "Reset your password here: " + resetUrl)
   }
 
-  notFound {
-    resourceNotFound()
-  }
-
   def showView(view: String, attributes: (String, Any)*) {
     contentType = "text/html"
     scaml(view, attributes: _*)
+  }
+
+  notFound {
+    resourceNotFound()
   }
 
   protected def contextPath = request.getContextPath

@@ -21,7 +21,7 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
     if (ResetRequestDB.doesItExist(params("userid"), params("identifier"))) {
       showView("reset-password", "userid" -> params("userid"))
     } else {
-      showView("recover-password", "errorMessage" -> Some("The reset-link was expired or unknowwn."))
+      showView("recover-password", "errorMessage" -> Some("The reset-link was expired or unknown."))
     }
   }
 
@@ -55,8 +55,12 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
   }
 
   def sendResetLinkToUser(email: String, username: String, identifier: String) {
-    val resetUrl = url("/reset-password/" + username + "/" + identifier)
-    sendMail("noreply@java.no", email, "Password reset requested", "Reset your password here: " + resetUrl)
+    var resetURL = request.getScheme + "://" + request.getServerName
+    if (request.getServerPort != 80) {
+      resetURL = resetURL.concat(":" + request.getServerPort)
+    }
+    resetURL = resetURL.concat(url("/reset-password/" + username + "/" + identifier))
+    sendMail("noreply@java.no", email, "Password reset requested", "Reset your password here: " + resetURL)
   }
 
   def showView(view: String, attributes: (String, Any)*) {

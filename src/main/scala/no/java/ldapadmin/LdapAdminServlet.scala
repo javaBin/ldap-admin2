@@ -29,6 +29,15 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
     val uid = params("userid")
     val identifier = params("identifier")
     val pwd = params("pwd")
+
+    if(!pwd.equals(params("pwd-retype"))) {
+      halt(status=403, reason="Passwords doesn't match")
+    }
+
+    if (isWeakPassword(pwd)) {
+      halt(status=403, reason="Your password is to weak. Must be at least 6 characters.")
+    }
+    
     val user = findUserByUid(uid)
     if(user.isDefined && ResetRequestDB.doesItExist (uid, identifier)) {
       val u = user.get
@@ -36,9 +45,11 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
       saveUser(u)
       ResetRequestDB.deleteByUser(u.getUid)
     } else {
-      halt(400)
+      halt(status=403, reason="Invalid request: Unknown or outdated user/identifier.")
     }
   }
+  
+  def isWeakPassword(pwd: String) : Boolean = pwd.length() < 6
 
   post("/recover-password") {
     val email = params("email")

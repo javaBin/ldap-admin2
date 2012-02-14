@@ -19,21 +19,24 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
 
   get("/reset-password/:userid/:identifier") {
     if (ResetRequestDB.doesItExist(params("userid"), params("identifier"))) {
-      showView("reset-password", "userid" -> params("userid"))
+      showView("reset-password", "userid" -> params("userid"), "identifier" -> params("identifier"))
     } else {
       showView("recover-password", "errorMessage" -> Some("The reset-link was expired or unknown."))
     }
   }
 
-  post("/reset-password/:userid") {
+  post("/reset-password/:userid/:identifier") {
     val uid = params("userid")
+    val identifier = params("identifier")
     val pwd = params("pwd")
     val user = findUserByUid(uid)
-    if(user.isDefined) {
+    if(user.isDefined && ResetRequestDB.doesItExist (uid, identifier)) {
       val u = user.get
       u.setPassword(HashGenerator.createHash(pwd))
       saveUser(u)
       ResetRequestDB.deleteByUser(u.getUid)
+    } else {
+      halt(400)
     }
   }
 

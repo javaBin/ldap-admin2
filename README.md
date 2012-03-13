@@ -17,6 +17,7 @@ To build and start the project locally issue the following sbt commands
     > ~compile
 
 Build war
+---------
 
     $ sbt package-war
 

@@ -16,5 +16,9 @@ To build and start the project locally issue the following sbt commands
     > container:start
     > ~compile
 
+Build war
+---------
+
+    $ sbt package-war
 
 ...and keep in mind: this is __WIP__!

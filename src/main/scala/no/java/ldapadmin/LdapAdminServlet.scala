@@ -6,6 +6,7 @@ import scalate.ScalateSupport
 import java.util.Calendar
 import java.sql.Timestamp
 import util.HashGenerator
+import javax.mail.MessagingException
 
 class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with DefaultMailSender with LdapUserOperations {
 
@@ -62,7 +63,11 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
       val uid = user.get.getUid
       val pr = new PasswordResetRequest(uid, identifier, new Timestamp(now.getTime))
       ResetRequestDB.addRequest(pr)
-      sendResetLinkToUser(email, uid, identifier)
+      try {
+        sendResetLinkToUser(email, uid, identifier)
+      } catch {
+        case me: MessagingException => halt(status=500, reason="Internal error: Failed to send email.")
+      }
     } else {
       showView("recover-password", "errorMessage" -> Some("No user with the given e-mail address"))
     }

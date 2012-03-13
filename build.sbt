@@ -17,9 +17,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "container",
   "javax.servlet" % "servlet-api" % "2.5" % "provided",
   "javax.mail" % "mail" % "1.4.4",
-  "org.scalatest" %% "scalatest" % "1.6.1" % "test"
+  "org.scalatest" %% "scalatest" % "1.6.1" % "test",
+  "ch.qos.logback" % "logback-classic" % "1.0.0"
 )
 
 resolvers += "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
-
-resolvers += "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"

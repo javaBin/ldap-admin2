@@ -8,7 +8,7 @@ import java.sql.Timestamp
 import util.HashGenerator
 import javax.mail.MessagingException
 
-class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSupport with DefaultMailSender with LdapUserOperations {
+class LdapAdminServlet extends ScalatraServlet with ScalateSupport with DefaultMailSender with LdapUserOperations {
 
   get("/") {
     redirect(url("/recover-password"))
@@ -82,14 +82,12 @@ class LdapAdminServlet extends ScalatraServlet with ScalateSupport with UrlSuppo
     sendMail("noreply@java.no", email, "Password reset requested", "Reset your password here: " + resetURL)
   }
 
-  def showView(view: String, attributes: (String, Any)*) {
+  def showView(view: String, attributes: (String, Any)*) = {
     contentType = "text/html"
-    scaml(view, attributes: _*)
+    scaml("/" + view, attributes: _*)
   }
 
   notFound {
     resourceNotFound()
   }
-
-  protected def contextPath = request.getContextPath
 }
